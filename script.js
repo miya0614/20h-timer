@@ -12,48 +12,55 @@ class Timer20H {
         this.oneHourWarningShown = false;
         
         this.initializeElements();
+        this.loadData();
         this.bindEvents();
         this.updateDisplay();
         this.updateStats();
         this.updateRecordsTable();
         
+        setInterval(() => this.saveData(), 30000);
+        window.addEventListener('beforeunload', () => this.saveData());
+        
         console.log('Timer20H initialized successfully');
     }
     
     initializeElements() {
-        this.hoursEl = document.getElementById('hours');
-        this.minutesEl = document.getElementById('minutes');
-        this.secondsEl = document.getElementById('seconds');
-        this.startBtn = document.getElementById('start-btn');
-        this.pauseBtn = document.getElementById('pause-btn');
-        this.resetBtn = document.getElementById('reset-btn');
-        this.progressFill = document.getElementById('progress-fill');
-        this.progressPercent = document.getElementById('progress-percent');
-        
-        this.totalStudyTimeEl = document.getElementById('total-study-time');
-        this.sessionsCountEl = document.getElementById('sessions-count');
-        this.avgSessionTimeEl = document.getElementById('avg-session-time');
-        this.remainingTimeEl = document.getElementById('remaining-time');
-        this.recordsTbody = document.getElementById('records-tbody');
-        
-        this.notification = document.getElementById('notification');
-        this.notificationText = document.getElementById('notification-text');
-        this.notificationClose = document.getElementById('notification-close');
-        this.completionModal = document.getElementById('completion-modal');
-        this.celebrationClose = document.getElementById('celebration-close');
+        try {
+            this.hoursEl = document.getElementById('hours');
+            this.minutesEl = document.getElementById('minutes');
+            this.secondsEl = document.getElementById('seconds');
+            this.startBtn = document.getElementById('start-btn');
+            this.pauseBtn = document.getElementById('pause-btn');
+            this.resetBtn = document.getElementById('reset-btn');
+            this.progressFill = document.getElementById('progress-fill');
+            this.progressPercent = document.getElementById('progress-percent');
+            
+            this.totalStudyTimeEl = document.getElementById('total-study-time');
+            this.sessionsCountEl = document.getElementById('sessions-count');
+            this.avgSessionTimeEl = document.getElementById('avg-session-time');
+            this.remainingTimeEl = document.getElementById('remaining-time');
+            this.recordsTbody = document.getElementById('records-tbody');
+            
+            this.notification = document.getElementById('notification');
+            this.notificationText = document.getElementById('notification-text');
+            this.notificationClose = document.getElementById('notification-close');
+            this.completionModal = document.getElementById('completion-modal');
+            this.celebrationClose = document.getElementById('celebration-close');
+            
+            if (!this.hoursEl || !this.startBtn) {
+                throw new Error('必要な要素が見つかりません');
+            }
+        } catch (error) {
+            console.error('要素の初期化エラー:', error);
+        }
     }
     
     bindEvents() {
-        this.startBtn.onclick = () => this.start();
-        this.pauseBtn.onclick = () => this.pause();
-        this.resetBtn.onclick = () => this.reset();
-        
-        if (this.notificationClose) {
-            this.notificationClose.onclick = () => this.hideNotification();
-        }
-        if (this.celebrationClose) {
-            this.celebrationClose.onclick = () => this.hideCompletionModal();
-        }
+        if (this.startBtn) this.startBtn.onclick = () => this.start();
+        if (this.pauseBtn) this.pauseBtn.onclick = () => this.pause();
+        if (this.resetBtn) this.resetBtn.onclick = () => this.reset();
+        if (this.notificationClose) this.notificationClose.onclick = () => this.hideNotification();
+        if (this.celebrationClose) this.celebrationClose.onclick = () => this.hideCompletionModal();
     }
     
     start() {
@@ -63,17 +70,16 @@ class Timer20H {
             console.log('Resuming timer...');
             this.isRunning = true;
             this.isPaused = false;
-            this.currentSessionStart = new Date();
             
             this.startBtn.disabled = true;
             this.pauseBtn.disabled = false;
-            this.startBtn.innerHTML = '<span class="btn-icon">▶</span>一時停止';
+            this.startBtn.innerHTML = '<span class="btn-icon">▶</span>スタート';
             
             this.interval = setInterval(() => this.tick(), 1000);
             this.showNotification('タイマーを再開しました！');
+            this.saveData();
             console.log('Timer resumed');
-        }
-        else if (!this.isRunning) {
+        } else if (!this.isRunning) {
             console.log('Starting new timer...');
             this.isRunning = true;
             this.isPaused = false;
@@ -84,6 +90,7 @@ class Timer20H {
             
             this.interval = setInterval(() => this.tick(), 1000);
             this.showNotification('タイマーを開始しました！頑張ってください！');
+            this.saveData();
             console.log('Timer started');
         }
     }
@@ -95,7 +102,7 @@ class Timer20H {
             clearInterval(this.interval);
             
             const sessionDuration = Math.floor((new Date() - this.currentSessionStart) / 1000);
-            if (sessionDuration > 0) {
+            if (sessionDuration > 0 && this.currentSessionStart) {
                 this.sessions.push({
                     date: new Date().toLocaleDateString('ja-JP'),
                     startTime: this.currentSessionStart.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
@@ -110,6 +117,7 @@ class Timer20H {
             this.pauseBtn.disabled = true;
             this.startBtn.innerHTML = '<span class="btn-icon">▶</span>再開';
             this.showNotification('タイマーを一時停止しました');
+            this.saveData();
             console.log('Timer paused');
         }
     }
@@ -120,7 +128,6 @@ class Timer20H {
             this.isPaused = false;
             clearInterval(this.interval);
             
-            // すべての記録をクリア
             this.sessions = [];
             this.currentSessionStart = null;
             this.remainingSeconds = this.totalSeconds;
@@ -134,6 +141,7 @@ class Timer20H {
             this.updateStats();
             this.updateRecordsTable();
             this.showNotification('タイマーと記録をリセットしました');
+            this.saveData();
             console.log('Timer and records reset');
         }
     }
@@ -143,6 +151,10 @@ class Timer20H {
             this.remainingSeconds--;
             this.updateDisplay();
             this.updateStats();
+            
+            if (this.remainingSeconds % 5 === 0) {
+                this.saveData();
+            }
             
             if (this.remainingSeconds === 3600 && !this.oneHourWarningShown) {
                 this.oneHourWarningShown = true;
@@ -174,6 +186,7 @@ class Timer20H {
         
         this.updateRecordsTable();
         this.updateStats();
+        this.saveData();
         
         this.showCompletionModal();
         this.playSound('completion');
@@ -185,13 +198,13 @@ class Timer20H {
         const minutes = Math.floor((this.remainingSeconds % 3600) / 60);
         const seconds = this.remainingSeconds % 60;
         
-        this.hoursEl.textContent = hours.toString().padStart(2, '0');
-        this.minutesEl.textContent = minutes.toString().padStart(2, '0');
-        this.secondsEl.textContent = seconds.toString().padStart(2, '0');
+        if (this.hoursEl) this.hoursEl.textContent = hours.toString().padStart(2, '0');
+        if (this.minutesEl) this.minutesEl.textContent = minutes.toString().padStart(2, '0');
+        if (this.secondsEl) this.secondsEl.textContent = seconds.toString().padStart(2, '0');
         
         const progress = ((this.totalSeconds - this.remainingSeconds) / this.totalSeconds) * 100;
-        this.progressFill.style.width = progress + '%';
-        this.progressPercent.textContent = progress.toFixed(1);
+        if (this.progressFill) this.progressFill.style.width = progress + '%';
+        if (this.progressPercent) this.progressPercent.textContent = progress.toFixed(1);
     }
     
     updateStats() {
@@ -199,24 +212,34 @@ class Timer20H {
         const studiedHours = Math.floor(studiedSeconds / 3600);
         const studiedMinutes = Math.floor((studiedSeconds % 3600) / 60);
         
-        this.totalStudyTimeEl.textContent = `${studiedHours}時間${studiedMinutes}分`;
+        if (this.totalStudyTimeEl) {
+            this.totalStudyTimeEl.textContent = `${studiedHours}時間${studiedMinutes}分`;
+        }
         
         const remainingHours = Math.floor(this.remainingSeconds / 3600);
         const remainingMinutes = Math.floor((this.remainingSeconds % 3600) / 60);
-        this.remainingTimeEl.textContent = `${remainingHours}時間${remainingMinutes}分`;
+        if (this.remainingTimeEl) {
+            this.remainingTimeEl.textContent = `${remainingHours}時間${remainingMinutes}分`;
+        }
         
-        this.sessionsCountEl.textContent = this.sessions.length;
+        if (this.sessionsCountEl) {
+            this.sessionsCountEl.textContent = this.sessions.length;
+        }
         
-        if (this.sessions.length > 0) {
-            const totalSessionTime = this.sessions.reduce((sum, session) => sum + session.duration, 0);
-            const avgMinutes = Math.floor(totalSessionTime / this.sessions.length / 60);
-            this.avgSessionTimeEl.textContent = `${avgMinutes}分`;
-        } else {
-            this.avgSessionTimeEl.textContent = '0分';
+        if (this.avgSessionTimeEl) {
+            if (this.sessions.length > 0) {
+                const totalSessionTime = this.sessions.reduce((sum, session) => sum + session.duration, 0);
+                const avgMinutes = Math.floor(totalSessionTime / this.sessions.length / 60);
+                this.avgSessionTimeEl.textContent = `${avgMinutes}分`;
+            } else {
+                this.avgSessionTimeEl.textContent = '0分';
+            }
         }
     }
     
     updateRecordsTable() {
+        if (!this.recordsTbody) return;
+        
         if (this.sessions.length === 0) {
             this.recordsTbody.innerHTML = '<tr class="empty-message"><td colspan="4">まだ学習記録がありません</td></tr>';
             return;
@@ -239,6 +262,33 @@ class Timer20H {
                 </tr>
             `;
         }).join('');
+    }
+    
+    saveData() {
+        try {
+            const data = {
+                remainingSeconds: this.remainingSeconds,
+                sessions: this.sessions,
+                oneHourWarningShown: this.oneHourWarningShown
+            };
+            localStorage.setItem('timer20h_data', JSON.stringify(data));
+        } catch (error) {
+            console.error('データ保存エラー:', error);
+        }
+    }
+    
+    loadData() {
+        try {
+            const savedData = localStorage.getItem('timer20h_data');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                this.remainingSeconds = data.remainingSeconds || this.totalSeconds;
+                this.sessions = data.sessions || [];
+                this.oneHourWarningShown = data.oneHourWarningShown || false;
+            }
+        } catch (error) {
+            console.error('データ読み込みエラー:', error);
+        }
     }
     
     showNotification(message) {
@@ -285,61 +335,4 @@ class Timer20H {
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
                 oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
-            } else if (type === 'completion') {
-                const notes = [523, 659, 784, 1047];
-                notes.forEach((freq, index) => {
-                    setTimeout(() => {
-                        const osc = audioContext.createOscillator();
-                        const gain = audioContext.createGain();
-                        osc.connect(gain);
-                        gain.connect(audioContext.destination);
-                        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-                        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                        osc.start(audioContext.currentTime);
-                        osc.stop(audioContext.currentTime + 0.5);
-                    }, index * 200);
-                });
-            }
-        } catch (error) {
-            console.log('音声再生エラー:', error);
-        }
-    }
-    
-    createCelebrationEffect() {
-        for (let i = 0; i < 20; i++) {
-            setTimeout(() => {
-                const particle = document.createElement('div');
-                particle.textContent = ['🎉', '🎊', '⭐', '✨'][Math.floor(Math.random() * 4)];
-                particle.style.cssText = `
-                    position: fixed;
-                    left: ${Math.random() * window.innerWidth}px;
-                    top: ${Math.random() * window.innerHeight}px;
-                    font-size: ${Math.random() * 30 + 20}px;
-                    z-index: 3000;
-                    animation: fall 3s ease-out forwards;
-                `;
-                document.body.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }, i * 100);
-        }
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fall {
-                0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
-                100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    new Timer20H();
-    console.log('Perfect 20H Timer loaded successfully');
-});
+                gain
