@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20時間タイマー - 最初の20時間で何でも学べる</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">20時間タイマー</h1>
+            <p class="subtitle">最初の20時間で何でも学べる - Josh Kaufman</p>
+        </header>
+
+        <main class="main-content">
+            <section class="timer-section">
+                <div class="timer-display">
+                    <div class="time-block">
+                        <span id="hours" class="time-digit">20</span>
+                        <span class="time-label">時間</span>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-block">
+                        <span id="minutes" class="time-digit">00</span>
+                        <span class="time-label">分</span>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-block">
+                        <span id="seconds" class="time-digit">00</span>
+                        <span class="time-label">秒</span>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progress-percent">0%</span> 完了
+                    </div>
+                </div>
+            </section>
+
+            <section class="controls-section">
+                <div class="control-buttons">
+                    <button id="start-btn" class="btn btn-primary">
+                        <span class="btn-icon">▶</span>
+                        スタート
+                    </button>
+                    <button id="pause-btn" class="btn btn-secondary" disabled>
+                        <span class="btn-icon">⏸</span>
+                        一時停止
+                    </button>
+                    <button id="reset-btn" class="btn btn-danger">
+                        <span class="btn-icon">⏹</span>
+                        リセット
+                    </button>
+                </div>
+            </section>
+
+            <section class="stats-section">
+                <h2 class="section-title">学習統計</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-study-time">0時間0分</div>
+                        <div class="stat-label">総学習時間</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="sessions-count">0</div>
+                        <div class="stat-label">学習回数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avg-session-time">0分</div>
+                        <div class="stat-label">平均学習時間</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="remaining-time">20時間0分</div>
+                        <div class="stat-label">残り時間</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="records-section">
+                <h2 class="section-title">学習記録</h2>
+                <div class="table-container">
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th>日付</th>
+                                <th>開始時間</th>
+                                <th>学習時間</th>
+                                <th>進捗</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-tbody">
+                            <tr class="empty-message">
+                                <td colspan="4">まだ学習記録がありません</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <div id="notification" class="notification hidden">
+            <div class="notification-content">
+                <span id="notification-text"></span>
+                <button id="notification-close" class="notification-close">×</button>
+            </div>
+        </div>
+
+        <div id="completion-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="celebration">
+                    <div class="celebration-icon">🎉</div>
+                    <h2 class="celebration-title">おめでとうございます！</h2>
+                    <p class="celebration-message">20時間の学習を完了しました！<br>あなたはすごい頑張りをしました！</p>
+                    <div class="celebration-stats">
+                        <p>総学習時間: <span id="final-total-time">20時間</span></p>
+                        <p>学習日数: <span id="final-days">1</span>日</p>
+                    </div>
+                    <button id="celebration-close" class="btn btn-primary">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
