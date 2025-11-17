@@ -335,4 +335,61 @@ class Timer20H {
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
                 oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
                 oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-                gain
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } else if (type === 'completion') {
+                const notes = [523, 659, 784, 1047];
+                notes.forEach((freq, index) => {
+                    setTimeout(() => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+                        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        osc.start(audioContext.currentTime);
+                        osc.stop(audioContext.currentTime + 0.5);
+                    }, index * 200);
+                });
+            }
+        } catch (error) {
+            console.log('音声再生エラー:', error);
+        }
+    }
+    
+    createCelebrationEffect() {
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.textContent = ['🎉', '🎊', '⭐', '✨'][Math.floor(Math.random() * 4)];
+                particle.style.cssText = `
+                    position: fixed;
+                    left: ${Math.random() * window.innerWidth}px;
+                    top: ${Math.random() * window.innerHeight}px;
+                    font-size: ${Math.random() * 30 + 20}px;
+                    z-index: 3000;
+                    animation: fall 3s ease-out forwards;
+                `;
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 3000);
+            }, i * 100);
+        }
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    new Timer20H();
+    console.log('Perfect 20H Timer loaded successfully');
+});
